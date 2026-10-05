@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TempBox — Disposable Email</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Design tokens ─────────────────────────────────────── */
+:root {
+  --bg:           #f4f6fb;
+  --surface:      #ffffff;
+  --surface2:     #eef1f7;
+  --surface3:     #e5e9f2;
+  --border:       #dde2ed;
+  --text:         #141720;
+  --text2:        #545e73;
+  --text3:        #8c97ab;
+  --accent:       #2356f6;
+  --accent-dim:   #e8edff;
+  --accent-hover: #1740d6;
+  --green:        #16a34a;
+  --green-dim:    #dcfce7;
+  --amber:        #d97706;
+  --amber-dim:    #fef3c7;
+  --red:          #dc2626;
+  --red-dim:      #fee2e2;
+  --purple:       #7c3aed;
+  --purple-dim:   #ede9fe;
+  --radius:       12px;
+  --radius-sm:    8px;
+  --mono:         'JetBrains Mono', monospace;
+  --sans:         'Inter', sans-serif;
+  --shadow-sm:    0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:    0 4px 16px rgba(0,0,0,.10), 0 2px 4px rgba(0,0,0,.05);
+  --shadow-lg:    0 20px 60px rgba(0,0,0,.18), 0 4px 12px rgba(0,0,0,.08);
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top,0px);
+  padding-bottom: env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#0c0e14; --surface:#13161f; --surface2:#1c1f2b; --surface3:#24283a;
+    --border:#2a2f42; --text:#dde2f0; --text2:#8892a8; --text3:#4e5770;
+    --accent:#4f7aff; --accent-dim:#1a2350; --accent-hover:#6b90ff;
+    --green:#22c55e; --green-dim:#14311e;
+    --amber:#fbbf24; --amber-dim:#2d1e04;
+    --red:#f87171; --red-dim:#2d0a0a;
+    --purple:#a78bfa; --purple-dim:#1e1340;
+    --shadow-sm:0 1px 3px rgba(0,0,0,.3); --shadow-md:0 4px 16px rgba(0,0,0,.4); --shadow-lg:0 20px 60px rgba(0,0,0,.6);
+  }
+}
+[data-theme="dark"] {
+  --bg:#0c0e14; --surface:#13161f; --surface2:#1c1f2b; --surface3:#24283a;
+  --border:#2a2f42; --text:#dde2f0; --text2:#8892a8; --text3:#4e5770;
+  --accent:#4f7aff; --accent-dim:#1a2350; --accent-hover:#6b90ff;
+  --green:#22c55e; --green-dim:#14311e;
+  --amber:#fbbf24; --amber-dim:#2d1e04;
+  --red:#f87171; --red-dim:#2d0a0a;
+  --purple:#a78bfa; --purple-dim:#1e1340;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.3); --shadow-md:0 4px 16px rgba(0,0,0,.4); --shadow-lg:0 20px 60px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:inherit;}
+html,body{margin:0;padding:0;min-height:100%;font-family:var(--sans);background:var(--bg);color:var(--text);font-size:15px;line-height:1.5;}
+
+/* ── Scrollbar ─────────────────────────────────────────── */
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* ── Nav ──────────────────────────────────────────────── */
+nav {
+  background:var(--surface);border-bottom:1px solid var(--border);
+  padding:0 28px;display:flex;align-items:center;justify-content:space-between;
+  height:60px;position:sticky;top:env(safe-area-inset-top,0px);z-index:100;
+  box-shadow:var(--shadow-sm);
+}
+.logo{display:flex;align-items:center;gap:10px;font-weight:600;font-size:18px;color:var(--text);text-decoration:none;letter-spacing:-.2px;}
+.logo-icon{width:32px;height:32px;background:var(--accent);border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:16px;box-shadow:0 2px 8px rgba(35,86,246,.35);}
+.nav-right{display:flex;align-items:center;gap:6px;}
+.nav-btn{background:none;border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text2);cursor:pointer;padding:7px 11px;font-size:13px;font-family:var(--sans);font-weight:500;display:flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap;}
+.nav-btn:hover{background:var(--surface2);color:var(--text);}
+.nav-btn.icon-only{padding:7px 9px;font-size:16px;}
+
+/* ── Hero ────────────────────────────────────────────── */
+.hero{padding:52px 24px 32px;text-align:center;max-width:720px;margin:0 auto;}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--accent-dim);color:var(--accent);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;margin-bottom:18px;letter-spacing:.02em;}
+.hero h1{font-size:clamp(24px,4.5vw,38px);font-weight:700;margin:0 0 12px;line-height:1.2;letter-spacing:-.5px;}
+.hero h1 em{font-style:normal;color:var(--accent);}
+.hero p{color:var(--text2);margin:0 auto;font-size:15px;max-width:500px;line-height:1.6;}
+
+/* ── Email address card ───────────────────────────────── */
+.email-card{max-width:720px;margin:28px auto 0;padding:0 24px;}
+.email-display{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);}
+.email-bar{display:flex;align-items:stretch;}
+.email-icon{padding:0 14px;display:flex;align-items:center;color:var(--text3);font-size:18px;border-right:1px solid var(--border);}
+.email-address{flex:1;font-family:var(--mono);font-size:14px;font-weight:500;color:var(--text);padding:15px 14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-right:1px solid var(--border);cursor:default;user-select:all;}
+.email-actions{display:flex;flex-shrink:0;}
+.email-btn{background:none;border:none;padding:0 15px;cursor:pointer;color:var(--text3);font-size:17px;display:flex;align-items:center;justify-content:center;transition:all .15s;border-right:1px solid var(--border);height:100%;min-height:52px;}
+.email-btn:last-child{border-right:none;}
+.email-btn:hover{background:var(--surface2);color:var(--text);}
+.email-btn.danger:hover{color:var(--red);background:var(--red-dim);}
+.email-btn[title]:hover::after{content:attr(title);position:absolute;bottom:-28px;left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:3px 8px;border-radius:5px;font-size:11px;white-space:nowrap;pointer-events:none;font-family:var(--sans);}
+.email-btn{position:relative;}
+.email-ttip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:4px 8px;border-radius:5px;font-size:11px;white-space:nowrap;pointer-events:none;font-family:var(--sans);font-weight:500;opacity:0;transition:opacity .15s;z-index:10;}
+.email-btn:hover .email-ttip{opacity:1;}
+.btn-row{display:flex;gap:10px;margin-top:12px;}
+.generate-btn{flex:1;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);padding:14px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:background .15s, box-shadow .15s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 2px 8px rgba(35,86,246,.3);}
+.generate-btn:hover{background:var(--accent-hover);box-shadow:0 4px 14px rgba(35,86,246,.4);}
+.generate-btn:active{transform:scale(.98);}
+.generate-btn:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.qr-btn{background:var(--surface);color:var(--text2);border:1.5px solid var(--border);border-radius:var(--radius);padding:14px 18px;font-size:14px;font-weight:500;cursor:pointer;font-family:var(--sans);transition:all .15s;display:flex;align-items:center;gap:6px;}
+.qr-btn:hover{background:var(--surface2);color:var(--text);}
+
+/* ── Countdown ────────────────────────────────────────── */
+.expiry-bar{max-width:720px;margin:10px auto 0;padding:0 24px;}
+.expiry-inner{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);font-size:12px;color:var(--text2);}
+.expiry-inner .label{flex:1;}
+.expiry-inner .timer{font-family:var(--mono);font-weight:500;color:var(--text);}
+.expiry-track{flex:1;height:4px;background:var(--surface3);border-radius:2px;overflow:hidden;max-width:120px;}
+.expiry-fill{height:100%;background:var(--green);border-radius:2px;transition:width 1s linear,background .5s;}
+.expiry-fill.warn{background:var(--amber);}
+.expiry-fill.danger{background:var(--red);}
+
+/* ── Inbox ────────────────────────────────────────────── */
+.inbox-card{max-width:720px;margin:14px auto 40px;padding:0 24px;}
+.inbox-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:12px;}
+.inbox-left{display:flex;align-items:center;gap:8px;}
+.inbox-title{font-size:13px;font-weight:600;color:var(--text2);}
+.badge-count{background:var(--accent);color:#fff;border-radius:10px;padding:1px 8px;font-size:11px;font-weight:700;min-width:20px;text-align:center;}
+.badge-count.zero{background:var(--surface3);color:var(--text3);}
+.inbox-right{display:flex;align-items:center;gap:8px;}
+.search-wrap{position:relative;}
+.search-input{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 12px 7px 32px;font-size:13px;color:var(--text);font-family:var(--sans);outline:none;width:180px;transition:border-color .15s,width .2s;}
+.search-input:focus{border-color:var(--accent);width:220px;}
+.search-input::placeholder{color:var(--text3);}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:14px;pointer-events:none;}
+.filter-btn{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:7px 10px;font-size:13px;color:var(--text2);cursor:pointer;font-family:var(--sans);font-weight:500;display:flex;align-items:center;gap:4px;transition:all .15s;}
+.filter-btn:hover,.filter-btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+.live-dot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:pulse 2s infinite;flex-shrink:0;}
+.live-label{font-size:12px;color:var(--text3);display:flex;align-items:center;gap:5px;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.inbox-list{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);}
+.inbox-empty{padding:52px 24px;text-align:center;color:var(--text3);}
+.inbox-empty .empty-icon{font-size:40px;margin-bottom:14px;}
+.inbox-empty p{margin:0;font-size:14px;}
+.inbox-empty .sub{font-size:12px;margin-top:5px;color:var(--text3);}
+.inbox-loading{padding:32px;text-align:center;color:var(--text3);font-size:13px;display:flex;align-items:center;justify-content:center;gap:8px;}
+.spinner{width:16px;height:16px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── Email rows ──────────────────────────────────────── */
+.email-row{display:flex;align-items:flex-start;gap:12px;padding:13px 16px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;position:relative;}
+.email-row:last-child{border-bottom:none;}
+.email-row:hover{background:var(--surface2);}
+.email-row.selected{background:var(--accent-dim);}
+.email-row.unread{background:var(--surface);}
+.email-row.unread .row-subject{font-weight:600;color:var(--text);}
+.row-check{width:16px;height:16px;border:1.5px solid var(--border);border-radius:4px;flex-shrink:0;margin-top:10px;transition:all .15s;cursor:pointer;}
+.email-row:hover .row-check,.email-row.selected .row-check{border-color:var(--accent);}
+.email-row.selected .row-check{background:var(--accent);border-color:var(--accent);}
+.email-row.selected .row-check::after{content:'✓';display:block;color:#fff;font-size:10px;text-align:center;line-height:14px;}
+.sender-avatar{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;flex-shrink:0;color:#fff;letter-spacing:.5px;}
+.row-content{flex:1;min-width:0;}
+.row-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+.row-sender{font-size:13px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.row-meta{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.row-time{font-size:11px;color:var(--text3);white-space:nowrap;}
+.star-btn{background:none;border:none;cursor:pointer;font-size:14px;color:var(--text3);padding:0 2px;line-height:1;transition:color .15s;opacity:0;}
+.email-row:hover .star-btn,.star-btn.starred{opacity:1;}
+.star-btn.starred{color:var(--amber);}
+.row-subject{font-size:13px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+.row-preview{font-size:12px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+.unread-dot{width:7px;height:7px;background:var(--accent);border-radius:50%;flex-shrink:0;margin-top:15px;}
+.row-tag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:10px;flex-shrink:0;}
+.tag-verify{background:var(--accent-dim);color:var(--accent);}
+.tag-welcome{background:var(--green-dim);color:var(--green);}
+.tag-security{background:var(--red-dim);color:var(--red);}
+.tag-promo{background:var(--purple-dim);color:var(--purple);}
+.tag-order{background:var(--amber-dim);color:var(--amber);}
+
+/* ── Bulk action bar ─────────────────────────────────── */
+.bulk-bar{display:none;padding:10px 16px;background:var(--accent-dim);border-bottom:1px solid var(--border);align-items:center;gap:10px;}
+.bulk-bar.show{display:flex;}
+.bulk-count{font-size:13px;font-weight:600;color:var(--accent);flex:1;}
+.bulk-action{background:none;border:1px solid var(--accent);border-radius:6px;color:var(--accent);padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:all .15s;}
+.bulk-action:hover{background:var(--accent);color:#fff;}
+.bulk-action.del{border-color:var(--red);color:var(--red);}
+.bulk-action.del:hover{background:var(--red);color:#fff;}
+
+/* ── Email viewer modal ──────────────────────────────── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;padding:20px;overflow-y:auto;}
+.modal-overlay.open{display:flex;align-items:flex-start;justify-content:center;}
+.modal{background:var(--surface);border-radius:var(--radius);width:100%;max-width:660px;margin:auto;box-shadow:var(--shadow-lg);overflow:hidden;}
+.modal-header{display:flex;align-items:flex-start;gap:12px;padding:18px 20px;border-bottom:1px solid var(--border);}
+.modal-subject-wrap{flex:1;}
+.modal-subject{font-size:17px;font-weight:600;line-height:1.3;margin:0 0 4px;}
+.modal-tag{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;margin-top:2px;}
+.modal-actions{display:flex;gap:6px;flex-shrink:0;}
+.modal-act-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:6px 10px;cursor:pointer;color:var(--text2);font-size:13px;font-family:var(--sans);font-weight:500;transition:all .15s;display:flex;align-items:center;gap:4px;}
+.modal-act-btn:hover{background:var(--surface2);color:var(--text);}
+.modal-act-btn.active{background:var(--amber-dim);border-color:var(--amber);color:var(--amber);}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:var(--text3);padding:4px;border-radius:6px;line-height:1;transition:all .15s;}
+.modal-close:hover{background:var(--surface2);color:var(--text);}
+.modal-meta{padding:12px 20px;border-bottom:1px solid var(--border);display:grid;grid-template-columns:auto 1fr;gap:4px 12px;}
+.meta-label{font-size:12px;color:var(--text3);font-weight:500;}
+.meta-val{font-size:12px;color:var(--text);}
+.modal-body{padding:20px;font-size:14px;line-height:1.75;color:var(--text);white-space:pre-wrap;min-height:120px;}
+.modal-footer{padding:12px 20px;border-top:1px solid var(--border);display:flex;gap:8px;}
+.reply-area{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;font-family:var(--sans);color:var(--text);resize:none;outline:none;min-height:60px;transition:border-color .15s;}
+.reply-area:focus{border-color:var(--accent);}
+.reply-send-btn{background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--sans);align-self:flex-end;white-space:nowrap;transition:background .15s;}
+.reply-send-btn:hover{background:var(--accent-hover);}
+.modal-footer-wrap{display:flex;gap:8px;width:100%;}
+
+/* ── QR modal ────────────────────────────────────────── */
+.qr-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center;padding:20px;}
+.qr-overlay.open{display:flex;}
+.qr-modal{background:var(--surface);border-radius:var(--radius);padding:28px;max-width:300px;width:100%;text-align:center;box-shadow:var(--shadow-lg);}
+.qr-modal h3{margin:0 0 16px;font-size:16px;}
+.qr-canvas{width:200px;height:200px;border:1px solid var(--border);border-radius:var(--radius-sm);margin:0 auto 16px;}
+.qr-addr{font-family:var(--mono);font-size:11px;color:var(--text2);word-break:break-all;margin-bottom:16px;}
+.qr-close{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 20px;font-size:13px;cursor:pointer;font-family:var(--sans);font-weight:500;color:var(--text);transition:all .15s;}
+.qr-close:hover{background:var(--surface3);}
+
+/* ── Settings modal ──────────────────────────────────── */
+.settings-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;align-items:center;justify-content:center;padding:20px;}
+.settings-overlay.open{display:flex;}
+.settings-modal{background:var(--surface);border-radius:var(--radius);width:100%;max-width:420px;padding:0;box-shadow:var(--shadow-lg);overflow:hidden;}
+.settings-header{padding:18px 20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.settings-header h3{margin:0;font-size:16px;font-weight:600;}
+.settings-body{padding:20px;}
+.field-group{margin-bottom:16px;}
+.field-group label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:7px;letter-spacing:.03em;}
+.field-row{display:flex;gap:8px;align-items:center;}
+.field-input{flex:1;background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:14px;font-family:var(--mono);color:var(--text);outline:none;transition:border-color .15s;}
+.field-input:focus{border-color:var(--accent);}
+.field-sep{font-size:13px;color:var(--text3);font-weight:500;flex-shrink:0;}
+.domain-select{background:var(--bg);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px;font-size:13px;font-family:var(--mono);color:var(--text);outline:none;cursor:pointer;}
+.domain-select:focus{border-color:var(--accent);}
+.preset-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.preset-chip{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:12px;font-family:var(--mono);color:var(--text2);cursor:pointer;transition:all .15s;}
+.preset-chip:hover{background:var(--accent-dim);border-color:var(--accent);color:var(--accent);}
+.settings-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;}
+.btn-cancel{background:none;border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 16px;font-size:14px;cursor:pointer;color:var(--text2);font-family:var(--sans);font-weight:500;transition:all .15s;}
+.btn-cancel:hover{background:var(--surface2);}
+.btn-primary{flex:1;background:var(--accent);color:#fff;border:none;border-radius:var(--radius-sm);padding:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:var(--sans);transition:background .15s;}
+.btn-primary:hover{background:var(--accent-hover);}
+
+/* ── Shortcut help ───────────────────────────────────── */
+.help-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:400;align-items:center;justify-content:center;padding:20px;}
+.help-overlay.open{display:flex;}
+.help-modal{background:var(--surface);border-radius:var(--radius);padding:24px;max-width:380px;width:100%;box-shadow:var(--shadow-lg);}
+.help-modal h3{margin:0 0 16px;font-size:15px;font-weight:600;}
+.shortcut-list{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;font-size:13px;}
+.key{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:2px 8px;font-family:var(--mono);font-size:12px;font-weight:500;color:var(--text);width:fit-content;}
+.shortcut-desc{color:var(--text2);align-self:center;}
+
+/* ── Stats bar ───────────────────────────────────────── */
+.stats-bar{max-width:720px;margin:0 auto 0;padding:0 24px;}
+.stats-inner{display:flex;gap:16px;overflow-x:auto;padding-bottom:2px;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 14px;display:flex;align-items:center;gap:8px;flex-shrink:0;box-shadow:var(--shadow-sm);}
+.stat-icon{font-size:16px;}
+.stat-info{}
+.stat-num{font-size:15px;font-weight:700;color:var(--text);line-height:1;}
+.stat-lbl{font-size:11px;color:var(--text3);margin-top:1px;}
+
+/* ── FAQ ─────────────────────────────────────────────── */
+.faq-section{max-width:720px;margin:0 auto 60px;padding:0 24px;}
+.faq-heading{font-size:18px;font-weight:600;margin-bottom:14px;letter-spacing:-.2px;}
+.faq-item{border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px;overflow:hidden;background:var(--surface);}
+.faq-q{width:100%;text-align:left;background:none;border:none;padding:14px 16px;font-size:14px;font-weight:500;color:var(--text);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:12px;font-family:var(--sans);}
+.faq-q:hover{background:var(--surface2);}
+.faq-chevron{color:var(--text3);transition:transform .2s;flex-shrink:0;font-style:normal;}
+.faq-a{display:none;padding:0 16px 14px;font-size:13px;color:var(--text2);line-height:1.65;}
+.faq-item.open .faq-chevron{transform:rotate(180deg);}
+.faq-item.open .faq-a{display:block;}
+
+/* ── Footer ──────────────────────────────────────────── */
+footer{border-top:1px solid var(--border);padding:22px 24px;text-align:center;font-size:12px;color:var(--text3);}
+footer a{color:var(--text3);text-decoration:none;}
+footer a:hover{color:var(--text2);}
+
+/* ── Toast ───────────────────────────────────────────── */
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--text);color:var(--bg);padding:10px 20px;border-radius:10px;font-size:13px;font-weight:500;z-index:999;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;white-space:nowrap;box-shadow:var(--shadow-md);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.toast.success{background:var(--green);}
+.toast.error{background:var(--red);}
+
+/* ── Notification banner ─────────────────────────────── */
+.notif-banner{max-width:720px;margin:10px auto 0;padding:0 24px;display:none;}
+.notif-banner.show{display:block;}
+.notif-inner{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--green-dim);border:1px solid var(--green);border-radius:var(--radius-sm);font-size:13px;color:var(--green);animation:slideIn .3s ease;}
+@keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.notif-inner .notif-icon{font-size:16px;flex-shrink:0;}
+.notif-inner .notif-text{flex:1;font-weight:500;}
+.notif-dismiss{background:none;border:none;cursor:pointer;color:var(--green);font-size:16px;padding:0;line-height:1;}
+
+/* ── Responsive ──────────────────────────────────────── */
+@media(max-width:600px){
+  nav{padding:0 16px;}
+  .hero{padding:36px 16px 24px;}
+  .email-card,.inbox-card,.expiry-bar,.stats-bar,.faq-section{padding:0 16px;}
+  .search-input{width:130px;}
+  .search-input:focus{width:160px;}
+  .nav-btn span{display:none;}
+  .qr-btn span{display:none;}
+  .btn-row{flex-direction:column;}
+  .modal-footer-wrap{flex-direction:column;}
+}
+</style>
+</head>
+<body>
+
+<!-- ── Nav ──────────────────────────────────────────────── -->
+<nav>
+  <a class="logo" href="#">
+    <div class="logo-icon">✉</div>
+    TempBox
+  </a>
+  <div class="nav-right">
+    <button class="nav-btn" onclick="openHelp()" title="Keyboard shortcuts">
+      ⌨️ <span>Shortcuts</span>
+    </button>
+    <button class="nav-btn icon-only" onclick="toggleTheme()" id="themeBtn" title="Toggle theme">🌙</button>
+  </div>
+</nav>
+
+<!-- ── Hero ─────────────────────────────────────────────── -->
+<div class="hero">
+  <div class="hero-badge">🛡️ Zero tracking · No signup</div>
+  <h1>Your <em>instant</em> disposable inbox</h1>
+  <p>Anonymous temporary email addresses for registrations, confirmations, and anything you'd rather not mix with your real inbox.</p>
+</div>
+
+<!-- ── Email address card ────────────────────────────────── -->
+<div class="email-card">
+  <div class="email-display">
+    <div class="email-bar">
+      <div class="email-icon">✉️</div>
+      <div class="email-address" id="emailDisplay" title="Click to select">Generating…</div>
+      <div class="email-actions">
+        <button class="email-btn" onclick="copyEmail()" title="Copy">
+          <span class="email-ttip">Copy</span>📋
+        </button>
+        <button class="email-btn" onclick="openSettings()" title="Customize">
+          <span class="email-ttip">Customize</span>⚙️
+        </button>
+        <button class="email-btn" onclick="openQR()" title="QR code">
+          <span class="email-ttip">QR Code</span>◻️
+        </button>
+        <button class="email-btn danger" onclick="confirmDelete()" title="Delete inbox">
+          <span class="email-ttip">Delete</span>🗑️
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="generate-btn" onclick="generateEmail()" id="genBtn">✨ New Address</button>
+    <button class="qr-btn" onclick="openSettings()">⚙️ <span>Customize</span></button>
+  </div>
+</div>
+
+<!-- ── Expiry countdown ──────────────────────────────────── -->
+<div class="expiry-bar">
+  <div class="expiry-inner">
+    <span class="label">⏱ Expires in</span>
+    <div class="expiry-track"><div class="expiry-fill" id="expiryFill" style="width:100%"></div></div>
+    <span class="timer" id="expiryTimer">30:00</span>
+    <button class="nav-btn" onclick="renewExpiry()" style="padding:3px 10px;font-size:12px;">Renew</button>
+  </div>
+</div>
+
+<!-- ── Notification banner ──────────────────────────────── -->
+<div class="notif-banner" id="notifBanner">
+  <div class="notif-inner">
+    <span class="notif-icon">📬</span>
+    <span class="notif-text" id="notifText">New email arrived!</span>
+    <button class="notif-dismiss" onclick="dismissNotif()">✕</button>
+  </div>
+</div>
+
+<!-- ── Stats ────────────────────────────────────────────── -->
+<div class="stats-bar" id="statsBar" style="margin-top:12px;">
+  <div class="stats-inner">
+    <div class="stat-chip">
+      <span class="stat-icon">📨</span>
+      <div class="stat-info"><div class="stat-num" id="statTotal">0</div><div class="stat-lbl">Total received</div></div>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-icon">🔵</span>
+      <div class="stat-info"><div class="stat-num" id="statUnread">0</div><div class="stat-lbl">Unread</div></div>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-icon">⭐</span>
+      <div class="stat-info"><div class="stat-num" id="statStarred">0</div><div class="stat-lbl">Starred</div></div>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-icon">🏷</span>
+      <div class="stat-info"><div class="stat-num" id="statSenders">0</div><div class="stat-lbl">Senders</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Inbox ─────────────────────────────────────────────── -->
+<div class="inbox-card">
+  <div class="inbox-header">
+    <div class="inbox-left">
+      <span class="inbox-title">Inbox</span>
+      <span class="badge-count zero" id="countBadge">0</span>
+    </div>
+    <div class="inbox-right">
+      <div class="search-wrap">
+        <span class="search-icon">🔍</span>
+        <input class="search-input" id="searchInput" placeholder="Search…" oninput="renderInbox()" />
+      </div>
+      <button class="filter-btn" id="filterStarred" onclick="toggleFilter('starred')" title="Starred only">⭐</button>
+      <button class="filter-btn" id="filterUnread" onclick="toggleFilter('unread')" title="Unread only">🔵</button>
+      <div class="live-label"><div class="live-dot"></div>Live</div>
+    </div>
+  </div>
+  <div class="inbox-list" id="inboxList">
+    <div class="inbox-empty">
+      <div class="empty-icon">📭</div>
+      <p>Waiting for emails…</p>
+      <p class="sub">Share your address above and emails will appear here.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ── FAQ ──────────────────────────────────────────────── -->
+<div class="faq-section">
+  <div class="faq-heading">Frequently asked questions</div>
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">What is a temporary email? <em class="faq-chevron">▾</em></button>
+    <div class="faq-a">A temporary email is a disposable inbox that lets you receive messages without exposing your real address. Use it for sign-ups, downloads, or verifications — then walk away without worrying about spam.</div>
+  </div>
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">How long does it last? <em class="faq-chevron">▾</em></button>
+    <div class="faq-a">Each address is active for 30 minutes by default. Hit <strong>Renew</strong> to reset the clock whenever you need more time. You can also generate a fresh address any time.</div>
+  </div>
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">Can I choose my own address? <em class="faq-chevron">▾</em></button>
+    <div class="faq-a">Yes — tap the ⚙️ button or click <em>Customize</em> to enter a username and pick a domain. The new address activates immediately.</div>
+  </div>
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">Is it safe for registrations? <em class="faq-chevron">▾</em></button>
+    <div class="faq-a">Ideal for any throwaway sign-up, free-trial, or one-time verification. Avoid using it for accounts you'll need long-term access to (banking, recovery email, etc.).</div>
+  </div>
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">How many addresses can I create? <em class="faq-chevron">▾</em></button>
+    <div class="faq-a">Unlimited. Generate as many as you need with a single click. No account, no registration, no cost.</div>
+  </div>
+  <div class="faq-item">
+    <button class="faq-q" onclick="toggleFaq(this)">Can I reply to emails? <em class="faq-chevron">▾</em></button>
+    <div class="faq-a">Open any email and use the reply box at the bottom of the message. Replies are simulated in this demo, but in a real deployment they'd be sent via the mail server.</div>
+  </div>
+</div>
+
+<footer>© 2026 TempBox &nbsp;·&nbsp; <a href="#">Privacy Policy</a> &nbsp;·&nbsp; <a href="#">Status</a></footer>
+
+<!-- ── Email viewer modal ──────────────────────────────────── -->
+<div class="modal-overlay" id="emailModal" onclick="closeModalOnOverlay(event)">
+  <div class="modal" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div class="modal-subject-wrap">
+        <div class="modal-subject" id="modalSubject">—</div>
+        <span class="modal-tag" id="modalTag"></span>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-act-btn" id="modalStarBtn" onclick="toggleModalStar()">☆ Star</button>
+        <button class="modal-act-btn" onclick="copyModalLink()">🔗 Copy link</button>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-meta">
+      <span class="meta-label">From</span><span class="meta-val" id="modalFrom">—</span>
+      <span class="meta-label">To</span><span class="meta-val" id="modalTo">—</span>
+      <span class="meta-label">Date</span><span class="meta-val" id="modalDate">—</span>
+    </div>
+    <div class="modal-body" id="modalBody">—</div>
+    <div class="modal-footer">
+      <div class="modal-footer-wrap">
+        <textarea class="reply-area" id="replyArea" placeholder="Write a reply…" rows="2"></textarea>
+        <button class="reply-send-btn" onclick="sendReply()">Send ↑</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── QR modal ──────────────────────────────────────────── -->
+<div class="qr-overlay" id="qrOverlay" onclick="closeQROnOverlay(event)">
+  <div class="qr-modal">
+    <h3>Scan to share address</h3>
+    <canvas class="qr-canvas" id="qrCanvas" width="200" height="200"></canvas>
+    <div class="qr-addr" id="qrAddr"></div>
+    <button class="qr-close" onclick="closeQR()">Close</button>
+  </div>
+</div>
+
+<!-- ── Settings modal ──────────────────────────────────────── -->
+<div class="settings-overlay" id="settingsOverlay" onclick="closeSettingsOnOverlay(event)">
+  <div class="settings-modal">
+    <div class="settings-header">
+      <h3>Customize address</h3>
+      <button class="modal-close" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="settings-body">
+      <div class="field-group">
+        <label>Username</label>
+        <div class="field-row">
+          <input class="field-input" id="customUser" placeholder="username" spellcheck="false" autocomplete="off" />
+          <span class="field-sep">@</span>
+          <select class="domain-select" id="customDomain">
+            <option>tempbox.io</option>
+            <option>mboxr.com</option>
+            <option>disposr.net</option>
+            <option>trashly.org</option>
+            <option>inboxr.dev</option>
+            <option>quickmail.cx</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-group">
+        <label>Quick presets</label>
+        <div class="preset-chips" id="presetChips"></div>
+      </div>
+    </div>
+    <div class="settings-footer">
+      <button class="btn-cancel" onclick="closeSettings()">Cancel</button>
+      <button class="btn-primary" onclick="applySettings()">Apply</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Keyboard shortcut help ──────────────────────────────── -->
+<div class="help-overlay" id="helpOverlay" onclick="closeHelpOnOverlay(event)">
+  <div class="help-modal">
+    <h3>⌨️ Keyboard shortcuts</h3>
+    <div class="shortcut-list">
+      <kbd class="key">C</kbd><span class="shortcut-desc">Copy current address</span>
+      <kbd class="key">N</kbd><span class="shortcut-desc">Generate new address</span>
+      <kbd class="key">R</kbd><span class="shortcut-desc">Renew expiry timer</span>
+      <kbd class="key">/</kbd><span class="shortcut-desc">Focus search</span>
+      <kbd class="key">Esc</kbd><span class="shortcut-desc">Close any modal</span>
+      <kbd class="key">?</kbd><span class="shortcut-desc">Show this help</span>
+      <kbd class="key">D</kbd><span class="shortcut-desc">Toggle dark mode</span>
+      <kbd class="key">↑ ↓</kbd><span class="shortcut-desc">Navigate emails</span>
+    </div>
+    <button class="btn-cancel" style="width:100%;margin-top:20px;" onclick="closeHelp()">Close</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ── Script ─────────────────────────────────────────────── -->
+<script>
+'use strict';
+
+/* ─── Constants ──────────────────────────────────────────── */
+const AVATAR_COLORS=['#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981','#ef4444','#06b6d4','#84cc16','#6366f1','#14b8a6'];
+const SENDERS=[
+  {name:'GitHub',     domain:'github.com',     icon:'🐙'},
+  {name:'Notion',     domain:'notion.so',      icon:'📝'},
+  {name:'Discord',    domain:'discord.com',    icon:'💬'},
+  {name:'Shopify',    domain:'shopify.com',    icon:'🛒'},
+  {name:'Figma',      domain:'figma.com',      icon:'🎨'},
+  {name:'Spotify',    domain:'spotify.com',    icon:'🎵'},
+  {name:'Linear',     domain:'linear.app',     icon:'📐'},
+  {name:'Vercel',     domain:'vercel.com',     icon:'▲'},
+  {name:'Stripe',     domain:'stripe.com',     icon:'💳'},
+  {name:'Supabase',   domain:'supabase.io',    icon:'⚡'},
+  {name:'Netlify',    domain:'netlify.com',    icon:'🌐'},
+  {name:'Twilio',     domain:'twilio.com',     icon:'📱'},
+  {name:'Postmark',   domain:'postmarkapp.com',icon:'📬'},
+  {name:'Intercom',   domain:'intercom.com',   icon:'💭'},
+];
+const EMAIL_TYPES=['verification','welcome','password_reset','order_confirmation','security_alert','newsletter','two_factor','trial_ending'];
+const DOMAINS=['tempbox.io','mboxr.com','disposr.net','trashly.org','inboxr.dev','quickmail.cx'];
+const EXPIRY_DURATION=30*60; // 30 min in seconds
+
+/* ─── State ──────────────────────────────────────────────── */
+let currentEmail='';
+let emails=[];
+let selectedEmails=new Set();
+let openEmailIdx=-1;
+let filterMode=null; // 'starred' | 'unread' | null
+let sampleFn=null;
+let expiryLeft=EXPIRY_DURATION;
+let expiryTimer=null;
+let deliveryQueue=[];
+let isDelivering=false;
+
+/* ─── Utilities ──────────────────────────────────────────── */
+const $=id=>document.getElementById(id);
+const rndItem=arr=>arr[Math.floor(Math.random()*arr.length)];
+const rndInt=(min,max)=>Math.floor(Math.random()*(max-min+1))+min;
+const esc=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+/* ─── Theme ──────────────────────────────────────────────── */
+function getSysTheme(){return matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';}
+function applyTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  $('themeBtn').textContent=t==='dark'?'☀️':'🌙';
+  localStorage.setItem('tbTheme',t);
+}
+function toggleTheme(){
+  applyTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+}
+applyTheme(localStorage.getItem('tbTheme')||getSysTheme());
+
+/* ─── Toast ──────────────────────────────────────────────── */
+let toastT;
+function toast(msg,type=''){
+  const el=$('toast');
+  el.textContent=msg;
+  el.className='toast '+(type?type:'');
+  void el.offsetWidth;
+  el.classList.add('show');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>el.classList.remove('show'),2400);
+}
+
+/* ─── Email generation ──────────────────────────────────── */
+const ADJS=['swift','quiet','bold','calm','wise','brave','bright','lucky','cool','neat','sharp','warm','clever','crisp'];
+const NOUNS=['panda','cloud','maple','river','pixel','comet','cedar','prism','lotus','flint','dusk','spark','wave','arch'];
+
+function randomEmail(){
+  return `${rndItem(ADJS)}.${rndItem(NOUNS)}${rndInt(1000,9999)}@${rndItem(DOMAINS)}`;
+}
+
+function generateEmail(){
+  stopExpiry();
+  currentEmail=randomEmail();
+  $('emailDisplay').textContent=currentEmail;
+  emails=[];
+  selectedEmails.clear();
+  filterMode=null;
+  $('filterStarred').classList.remove('active');
+  $('filterUnread').classList.remove('active');
+  $('searchInput').value='';
+  renderInbox();
+  renderStats();
+  startExpiry();
+  scheduleNextEmail(rndInt(4000,9000));
+  toast('New address ready','success');
+  populatePresets();
+}
+
+/* ─── Expiry countdown ──────────────────────────────────── */
+function startExpiry(){
+  expiryLeft=EXPIRY_DURATION;
+  updateExpiry();
+  expiryTimer=setInterval(()=>{
+    expiryLeft--;
+    if(expiryLeft<=0){clearInterval(expiryTimer);generateEmail();}
+    else updateExpiry();
+  },1000);
+}
+function stopExpiry(){if(expiryTimer){clearInterval(expiryTimer);expiryTimer=null;}}
+function renewExpiry(){
+  expiryLeft=EXPIRY_DURATION;
+  toast('Expiry renewed ✓','success');
+}
+function updateExpiry(){
+  const m=Math.floor(expiryLeft/60), s=expiryLeft%60;
+  $('expiryTimer').textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  const pct=(expiryLeft/EXPIRY_DURATION)*100;
+  const fill=$('expiryFill');
+  fill.style.width=pct+'%';
+  fill.className='expiry-fill'+(pct<20?' danger':pct<40?' warn':'');
+}
+
+/* ─── Copy ──────────────────────────────────────────────── */
+function copyEmail(){
+  navigator.clipboard.writeText(currentEmail)
+    .then(()=>toast('Copied! ✓','success'))
+    .catch(()=>{
+      const t=document.createElement('textarea');
+      t.value=currentEmail;document.body.appendChild(t);t.select();
+      document.execCommand('copy');document.body.removeChild(t);
+      toast('Copied! ✓','success');
+    });
+}
+
+/* ─── QR code (simple canvas-based) ──────────────────────── */
+function openQR(){
+  const addr=currentEmail;
+  $('qrAddr').textContent=addr;
+  drawQR(addr);
+  $('qrOverlay').classList.add('open');
+}
+function closeQR(){$('qrOverlay').classList.remove('open');}
+function closeQROnOverlay(ev){if(ev.target===$('qrOverlay'))closeQR();}
+
+function drawQR(text){
+  // Simple visual QR placeholder with pattern
+  const canvas=$('qrCanvas');
+  const ctx=canvas.getContext('2d');
+  const size=200,cells=21,cell=Math.floor(size/cells);
+  const isDark=document.documentElement.getAttribute('data-theme')==='dark';
+  ctx.fillStyle=isDark?'#13161f':'#ffffff';ctx.fillRect(0,0,size,size);
+  ctx.fillStyle=isDark?'#dde2f0':'#141720';
+  // Deterministic pattern from text hash
+  let hash=0;for(let i=0;i<text.length;i++)hash=(hash*31+text.charCodeAt(i))>>>0;
+  const rng=(n)=>{hash=((hash^(hash>>>17))*0x45d9f3b)>>>0;return hash%n;};
+  // Corner squares
+  [[0,0],[0,cells-7],[cells-7,0]].forEach(([r,c])=>{
+    ctx.fillRect(c*cell,r*cell,7*cell,7*cell);
+    ctx.fillStyle=isDark?'#13161f':'#ffffff';
+    ctx.fillRect((c+1)*cell,(r+1)*cell,5*cell,5*cell);
+    ctx.fillStyle=isDark?'#dde2f0':'#141720';
+    ctx.fillRect((c+2)*cell,(r+2)*cell,3*cell,3*cell);
+  });
+  // Data modules
+  for(let r=0;r<cells;r++){
+    for(let c=0;c<cells;c++){
+      if((r<9&&c<9)||(r<9&&c>=cells-8)||(r>=cells-8&&c<9))continue;
+      if(rng(3)===0)ctx.fillRect(c*cell,r*cell,cell-1,cell-1);
+    }
+  }
+}
+
+/* ─── Delete inbox ──────────────────────────────────────── */
+function confirmDelete(){
+  if(confirm('Delete this inbox and generate a new address?')){
+    emails=[];selectedEmails.clear();
+    renderInbox();renderStats();
+    generateEmail();
+    toast('Inbox deleted');
+  }
+}
+
+/* ─── Settings ───────────────────────────────────────────── */
+function populatePresets(){
+  const chips=$('presetChips');
+  chips.innerHTML='';
+  const psets=[randomEmail().split('@')[0],randomEmail().split('@')[0],randomEmail().split('@')[0]];
+  psets.forEach(p=>{
+    const b=document.createElement('button');
+    b.className='preset-chip';b.textContent=p;
+    b.onclick=()=>{$('customUser').value=p;};
+    chips.appendChild(b);
+  });
+}
+function openSettings(){
+  const [user]=currentEmail.split('@');
+  $('customUser').value=user;
+  populatePresets();
+  $('settingsOverlay').classList.add('open');
+  setTimeout(()=>{$('customUser').focus();$('customUser').select();},60);
+}
+function closeSettings(){$('settingsOverlay').classList.remove('open');}
+function closeSettingsOnOverlay(ev){if(ev.target===$('settingsOverlay'))closeSettings();}
+function applySettings(){
+  const user=$('customUser').value.trim().replace(/[^a-z0-9._+-]/gi,'');
+  const domain=$('customDomain').value;
+  if(!user){toast('Enter a username','error');return;}
+  currentEmail=`${user}@${domain}`;
+  $('emailDisplay').textContent=currentEmail;
+  emails=[];selectedEmails.clear();
+  renderInbox();renderStats();
+  closeSettings();
+  renewExpiry();
+  toast('Address updated ✓','success');
+  scheduleNextEmail(rndInt(5000,10000));
+}
+
+/* ─── Filter ─────────────────────────────────────────────── */
+function toggleFilter(mode){
+  if(filterMode===mode){filterMode=null;$(mode==='starred'?'filterStarred':'filterUnread').classList.remove('active');}
+  else{
+    filterMode=mode;
+    $('filterStarred').classList.toggle('active',mode==='starred');
+    $('filterUnread').classList.toggle('active',mode==='unread');
+  }
+  renderInbox();
+}
+
+/* ─── Stats ──────────────────────────────────────────────── */
+function renderStats(){
+  $('statTotal').textContent=emails.length;
+  $('statUnread').textContent=emails.filter(e=>e.unread).length;
+  $('statStarred').textContent=emails.filter(e=>e.starred).length;
+  $('statSenders').textContent=new Set(emails.map(e=>e.from)).size;
+}
+
+/* ─── Inbox render ───────────────────────────────────────── */
+function getTag(type){
+  const map={verification:['Verify','tag-verify'],welcome:['Welcome','tag-welcome'],password_reset:['Reset','tag-verify'],order_confirmation:['Order','tag-order'],security_alert:['Security','tag-security'],newsletter:['Newsletter','tag-promo'],two_factor:['2FA','tag-security'],trial_ending:['Trial','tag-promo']};
+  return map[type]||['Mail','tag-verify'];
+}
+
+function filteredEmails(){
+  const q=$('searchInput').value.toLowerCase();
+  return emails.filter(e=>{
+    if(filterMode==='starred'&&!e.starred)return false;
+    if(filterMode==='unread'&&!e.unread)return false;
+    if(q&&!e.from.toLowerCase().includes(q)&&!e.subject.toLowerCase().includes(q)&&!e.body.toLowerCase().includes(q))return false;
+    return true;
+  });
+}
+
+function renderInbox(){
+  const list=$('inboxList');
+  const bulk=$('bulk-bar')||null; // not in DOM yet
+  const unread=emails.filter(e=>e.unread).length;
+  const badge=$('countBadge');
+  badge.textContent=unread||emails.length;
+  badge.className='badge-count'+(emails.length===0?' zero':'');
+
+  const shown=filteredEmails();
+
+  if(!shown.length){
+    const isEmpty=emails.length===0;
+    list.innerHTML=`<div class="inbox-empty">
+      <div class="empty-icon">${isEmpty?'📭':'🔍'}</div>
+      <p>${isEmpty?'Waiting for emails…':'No emails match your filter.'}</p>
+      <p class="sub">${isEmpty?'Share your address and emails appear here.':'Try a different search or filter.'}</p>
+    </div>`;
+    return;
+  }
+
+  // Bulk bar
+  const selCount=selectedEmails.size;
+  let bulkHtml=selCount?`<div class="bulk-bar show" id="bulkBar">
+    <span class="bulk-count">${selCount} selected</span>
+    <button class="bulk-action" onclick="markSelectedRead()">Mark read</button>
+    <button class="bulk-action" onclick="starSelected()">⭐ Star</button>
+    <button class="bulk-action del" onclick="deleteSelected()">Delete</button>
+    <button class="bulk-action" onclick="clearSelection()">Clear</button>
+  </div>`:'';
+
+  list.innerHTML=bulkHtml+shown.map((e,vi)=>{
+    const i=emails.indexOf(e);
+    const bg=AVATAR_COLORS[e.from.charCodeAt(0)%AVATAR_COLORS.length];
+    const ini=e.from.slice(0,2).toUpperCase();
+    const [tagLabel,tagClass]=getTag(e.type);
+    const isSel=selectedEmails.has(i);
+    return `<div class="email-row ${e.unread?'unread':''} ${isSel?'selected':''}" data-idx="${i}">
+      <div class="row-check" onclick="toggleSelect(event,${i})">${isSel?'✓':''}</div>
+      <div class="sender-avatar" style="background:${bg}" onclick="openEmail(${i})">${ini}</div>
+      <div class="row-content" onclick="openEmail(${i})">
+        <div class="row-top">
+          <div class="row-sender">${esc(e.from)}</div>
+          <div class="row-meta">
+            <span class="row-tag ${tagClass}">${tagLabel}</span>
+            <span class="row-time">${e.timeStr}</span>
+          </div>
+        </div>
+        <div class="row-subject">${esc(e.subject)}</div>
+        <div class="row-preview">${esc(e.preview)}</div>
+      </div>
+      <button class="star-btn ${e.starred?'starred':''}" onclick="toggleStar(event,${i})">${e.starred?'★':'☆'}</button>
+      ${e.unread?'<div class="unread-dot"></div>':''}
+    </div>`;
+  }).join('');
+
+  renderStats();
+}
+
+/* ─── Selection ──────────────────────────────────────────── */
+function toggleSelect(ev,i){
+  ev.stopPropagation();
+  selectedEmails.has(i)?selectedEmails.delete(i):selectedEmails.add(i);
+  renderInbox();
+}
+function clearSelection(){selectedEmails.clear();renderInbox();}
+function markSelectedRead(){selectedEmails.forEach(i=>{emails[i].unread=false;});clearSelection();}
+function starSelected(){selectedEmails.forEach(i=>{emails[i].starred=true;});clearSelection();}
+function deleteSelected(){
+  const idxs=[...selectedEmails].sort((a,b)=>b-a);
+  idxs.forEach(i=>emails.splice(i,1));
+  selectedEmails.clear();
+  renderInbox();renderStats();
+  toast(`Deleted ${idxs.length} email${idxs.length>1?'s':''}`);
+}
+
+/* ─── Star ───────────────────────────────────────────────── */
+function toggleStar(ev,i){
+  ev.stopPropagation();
+  emails[i].starred=!emails[i].starred;
+  renderInbox();
+  if(openEmailIdx===i)updateModalStar();
+}
+function toggleModalStar(){
+  if(openEmailIdx<0)return;
+  emails[openEmailIdx].starred=!emails[openEmailIdx].starred;
+  renderInbox();
+  updateModalStar();
+}
+function updateModalStar(){
+  const starred=openEmailIdx>=0&&emails[openEmailIdx].starred;
+  const btn=$('modalStarBtn');
+  btn.textContent=(starred?'★ Starred':'☆ Star');
+  btn.classList.toggle('active',starred);
+}
+
+/* ─── Open email ─────────────────────────────────────────── */
+function openEmail(i){
+  const e=emails[i];
+  openEmailIdx=i;
+  e.unread=false;
+  renderInbox();
+  $('modalSubject').textContent=e.subject;
+  $('modalFrom').textContent=e.fromFull;
+  $('modalTo').textContent=currentEmail;
+  $('modalDate').textContent=e.dateFull;
+  $('modalBody').textContent=e.body;
+  const [tagLabel,tagClass]=getTag(e.type);
+  const tag=$('modalTag');
+  tag.textContent=tagLabel;
+  tag.className='modal-tag '+tagClass;
+  $('replyArea').value='';
+  updateModalStar();
+  $('emailModal').classList.add('open');
+}
+function closeModal(){$('emailModal').classList.remove('open');openEmailIdx=-1;}
+function closeModalOnOverlay(ev){if(ev.target===$('emailModal'))closeModal();}
+function copyModalLink(){copyEmail();toast('Address copied ✓','success');}
+
+/* ─── Reply ──────────────────────────────────────────────── */
+function sendReply(){
+  const txt=$('replyArea').value.trim();
+  if(!txt){toast('Type a reply first','error');return;}
+  $('replyArea').value='';
+  toast('Reply sent ✓','success');
+  // Simulate reply-received after short delay
+  setTimeout(()=>{
+    if(openEmailIdx>=0){
+      const orig=emails[openEmailIdx];
+      const now=new Date();
+      emails.unshift({
+        from:orig.from,fromFull:orig.fromFull,
+        subject:'Re: '+orig.subject,
+        body:`Thanks for your message!\n\n"${txt.slice(0,60)}${txt.length>60?'…':''}"\n\nWe'll follow up shortly.\n\n— The ${orig.from} Team`,
+        preview:'Thanks for your message!',
+        timeStr:now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
+        dateFull:now.toLocaleString(),
+        unread:true,starred:false,type:'welcome',
+      });
+      renderInbox();showNotif(`Reply from ${orig.from}`);
+    }
+  },3000);
+}
+
+/* ─── Notification banner ────────────────────────────────── */
+function showNotif(text){
+  $('notifText').textContent=text;
+  $('notifBanner').classList.add('show');
+  setTimeout(dismissNotif,6000);
+}
+function dismissNotif(){$('notifBanner').classList.remove('show');}
+
+/* ─── AI email delivery ──────────────────────────────────── */
+function scheduleNextEmail(delay){
+  setTimeout(()=>deliverEmail(),delay);
+}
+
+async function deliverEmail(){
+  const sender=rndItem(SENDERS);
+  const type=rndItem(EMAIL_TYPES);
+  let subject='',body='';
+
+  if(sampleFn){
+    try{
+      const prompt=`Generate a realistic transactional email from ${sender.name} (noreply@${sender.domain}) to the user at ${currentEmail}.
+Email type: ${type.replace(/_/g,' ')}
+Respond ONLY with compact JSON (no markdown, no explanation):
+{"subject":"...","body":"..."}
+Rules: body is plain text, 3-5 short paragraphs, under 160 words. Include a 6-digit numeric code if type is verification/2FA/password_reset. Be realistic and concise.`;
+
+      const res=await sampleFn(prompt,{cache:false,modelTier:'quick'});
+      const clean=res.text.replace(/```json|```/g,'').trim();
+      const parsed=JSON.parse(clean);
+      if(parsed.subject&&parsed.body){subject=parsed.subject;body=parsed.body;}
+    }catch(e){}
+  }
+
+  if(!subject){
+    const fb=getFallback(sender,type);
+    subject=fb.subject;body=fb.body;
+  }
+
+  addEmail(sender,type,subject,body);
+
+  // Schedule next (random 8–20s between emails, up to 5 total per session)
+  if(emails.length<20)scheduleNextEmail(rndInt(10000,25000));
+}
+
+function getFallback(sender,type){
+  const code=()=>rndInt(100000,999999);
+  const map={
+    verification:{subject:`Verify your ${sender.name} account`,body:`Hi there,\n\nThanks for signing up for ${sender.name}! Please verify your email address:\n\n  🔑  ${code()}\n\nThis code expires in 15 minutes.\n\nIf you didn't create this account, you can safely ignore this email.\n\n— The ${sender.name} Team`},
+    welcome:{subject:`Welcome to ${sender.name}!`,body:`Hi there,\n\nWelcome aboard! Your ${sender.name} account is ready to go.\n\nYou can sign in at any time to explore everything we offer. If you have questions, our support team is here to help.\n\nLet's get started.\n\n— The ${sender.name} Team`},
+    password_reset:{subject:`Reset your ${sender.name} password`,body:`Hi,\n\nWe received a request to reset your password.\n\nUse this code to reset it:\n\n  🔐  ${code()}\n\nThis code expires in 10 minutes. If you didn't request this, you can ignore this email — your password won't change.\n\n— ${sender.name} Security`},
+    two_factor:{subject:`Your ${sender.name} login code`,body:`Hi,\n\nSomeone is signing in to your ${sender.name} account.\n\nYour one-time code:\n\n  🛡️  ${code()}\n\nDon't share this code with anyone. It expires in 5 minutes.\n\n— ${sender.name} Security`},
+    order_confirmation:{subject:`Your ${sender.name} order is confirmed`,body:`Hi there,\n\nGreat news — your order has been confirmed! 🎉\n\nOrder #${rndInt(100000,999999)}\nEstimated delivery: 3-5 business days.\n\nYou'll receive another email with tracking info once your order ships.\n\nThank you for your purchase.\n\n— ${sender.name} Orders`},
+    security_alert:{subject:`Security alert: new sign-in to ${sender.name}`,body:`Hi,\n\nWe noticed a new sign-in to your ${sender.name} account.\n\nIf this was you, no action is needed.\n\nIf you don't recognize this activity, please secure your account immediately by resetting your password.\n\nStay safe,\n— ${sender.name} Security Team`},
+    newsletter:{subject:`What's new at ${sender.name} this week`,body:`Hi there,\n\nHere's what's been happening at ${sender.name}:\n\n• New features released this week\n• Improved performance across all platforms\n• Upcoming webinar — register now\n• Community highlights from our users\n\nRead more on our blog.\n\nCheers,\n— The ${sender.name} Team`},
+    trial_ending:{subject:`Your ${sender.name} trial ends in 3 days`,body:`Hi there,\n\nJust a heads up — your free trial of ${sender.name} is ending in 3 days.\n\nUpgrade now to keep full access to all features. We've loved having you on board!\n\nUse code WELCOME20 for 20% off your first month.\n\n— The ${sender.name} Team`},
+  };
+  return map[type]||map.welcome;
+}
+
+function addEmail(sender,type,subject,body){
+  const now=new Date();
+  emails.unshift({
+    from:sender.name,
+    fromFull:`${sender.name} <noreply@${sender.domain}>`,
+    subject,body,type,
+    preview:body.replace(/\n+/g,' ').replace(/\s+/g,' ').trim().slice(0,90),
+    timeStr:now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),
+    dateFull:now.toLocaleString(),
+    unread:true,
+    starred:false,
+  });
+  renderInbox();
+  showNotif(`📬 New email from ${sender.name}`);
+}
+
+/* ─── Keyboard shortcuts ─────────────────────────────────── */
+document.addEventListener('keydown',e=>{
+  const tag=document.activeElement.tagName;
+  const inInput=['INPUT','TEXTAREA','SELECT'].includes(tag);
+  if(e.key==='Escape'){
+    if($('emailModal').classList.contains('open'))closeModal();
+    else if($('settingsOverlay').classList.contains('open'))closeSettings();
+    else if($('qrOverlay').classList.contains('open'))closeQR();
+    else if($('helpOverlay').classList.contains('open'))closeHelp();
+    return;
+  }
+  if(inInput)return;
+  if(e.key==='c'||e.key==='C')copyEmail();
+  if(e.key==='n'||e.key==='N')generateEmail();
+  if(e.key==='r'||e.key==='R')renewExpiry();
+  if(e.key==='d'||e.key==='D')toggleTheme();
+  if(e.key==='?')openHelp();
+  if(e.key==='/'){e.preventDefault();$('searchInput').focus();}
+  if(e.key==='ArrowDown'&&openEmailIdx<emails.length-1)openEmail(openEmailIdx+1);
+  if(e.key==='ArrowUp'&&openEmailIdx>0)openEmail(openEmailIdx-1);
+});
+
+/* ─── Help modal ─────────────────────────────────────────── */
+function openHelp(){$('helpOverlay').classList.add('open');}
+function closeHelp(){$('helpOverlay').classList.remove('open');}
+function closeHelpOnOverlay(ev){if(ev.target===$('helpOverlay'))closeHelp();}
+
+/* ─── FAQ ────────────────────────────────────────────────── */
+function toggleFaq(btn){btn.parentElement.classList.toggle('open');}
+
+/* ─── Init ───────────────────────────────────────────────── */
+async function init(){
+  generateEmail();
+  try{sampleFn=await claude.use('sample');}catch(e){sampleFn=null;}
+}
+init();
+</script>
+</body>
+</html>
